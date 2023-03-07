@@ -56,6 +56,10 @@ function Test5() {
   return <div onClick={() => setCount(8)}>Test5: {conut}</div>;
 }
 
+function Test6() {
+  return <div>Test6</div>;
+}
+
 export default function App() {
   return (
     <div className="App">
@@ -64,6 +68,7 @@ export default function App() {
       <Test3 />
       <Test4 />
       <Test5 />
+      <Test6 />
     </div>
   );
 }

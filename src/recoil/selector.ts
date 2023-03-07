@@ -1,9 +1,5 @@
-import { NameSpace } from "./atom";
+import { NameSpace, Basic } from "./basic";
 import { RecoilState } from "./types";
-
-type SubscribeReturn = {
-  unsubscribe: VoidFunction;
-};
 
 type SelectorGetGenerator<T> = (context: {
   get: <V>(dep: RecoilState) => V;
@@ -20,33 +16,24 @@ type SelectConext = {
   set: SelectorSetGenerator<any>;
 };
 
-export class Selector<T> {
-  private listeners = new Set<(context: T) => void>();
-
+export class Selector<T> extends Basic<T> {
   private registeredDeps = new Set();
-  value: T;
-
-  private bindAtom<V>(dep: RecoilState): V {
-    if (Boolean(this.context.set)) {
-    }
-
-    if (!this.registeredDeps.has(dep)) {
-      dep.subscribe(() => this.updateSelector());
-      this.registeredDeps.add(dep);
-    }
-    return dep.getter();
-  }
 
   private updateSelector() {
     this.value = this.context.get({
-      get: (dep: RecoilState) => this.bindAtom(dep),
+      get: (dep: RecoilState) => dep.getter(),
     });
     this.emit();
   }
 
+  private bindAtom<V>(dep: RecoilState): V {
+    dep.subscribe(() => this.updateSelector());
+    this.registeredDeps.add(dep);
+    return dep.getter();
+  }
+
   constructor(private readonly context: SelectConext) {
-    this.getter = this.getter.bind(this);
-    this.setter = this.setter.bind(this);
+    super();
     this.value = context.get({ get: (dep: RecoilState) => this.bindAtom(dep) });
   }
 
@@ -55,26 +42,6 @@ export class Selector<T> {
       get: (dep: RecoilState) => dep.getter(),
       set: (dep: RecoilState, value: any) => dep.setter(value),
     });
-  }
-
-  getter(): T {
-    return this.value;
-  }
-
-  emit() {
-    for (const listener of this.listeners) {
-      const value = this.getter();
-      listener(value);
-    }
-  }
-
-  subscribe(callback: (value: T) => void): SubscribeReturn {
-    this.listeners.add(callback);
-    return {
-      unsubscribe: () => {
-        this.listeners.delete(callback);
-      },
-    };
   }
 }
 

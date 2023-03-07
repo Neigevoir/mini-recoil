@@ -1,53 +1,16 @@
-type SubscribeReturn = {
-  unsubscribe: VoidFunction;
-};
-
-export const NameSpace = new Map();
+import { Basic, NameSpace } from "./basic";
 
 type AtomContext = {
   key: string;
   default: any;
 };
 
-export class Atom<T> {
-  private listeners = new Set<(value: T) => void>();
+export class Atom<T> extends Basic<T> {
   value: any;
-  key: string;
 
   constructor(private context: AtomContext) {
-    this.getter = this.getter.bind(this);
-    this.setter = this.setter.bind(this);
+    super();
     this.value = context.default;
-    this.key = context.key;
-  }
-
-  setter(value: T) {
-    if (this.value === value) {
-      console.log("memo");
-    } else {
-      this.value = value;
-      this.emit();
-    }
-  }
-
-  getter(): T {
-    return this.value;
-  }
-
-  emit() {
-    for (const listener of this.listeners) {
-      const value = this.getter();
-      listener(value);
-    }
-  }
-
-  subscribe(callback: (value: T) => void): SubscribeReturn {
-    this.listeners.add(callback);
-    return {
-      unsubscribe: () => {
-        this.listeners.delete(callback);
-      },
-    };
   }
 }
 
